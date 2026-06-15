@@ -341,6 +341,7 @@ actor_rollout_ref:
       engine_kwargs: {}
       custom_backend_module: null
       check_weight_sync: false
+      check_weight_sync_only: false
     trace:
       _target_: verl.workers.config.TraceConfig
       project_name: ${oc.select:trainer.project_name,null}
