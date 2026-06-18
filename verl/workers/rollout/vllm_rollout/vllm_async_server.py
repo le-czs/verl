@@ -435,6 +435,21 @@ class vLLMHttpServer:
         self.engine = engine_client
         self._server_port, self._server_task = await run_uvicorn(app, args, self._server_address)
 
+    async def shutdown(self):
+        """Stop the HTTP server and vLLM engine before the Ray actor exits."""
+        server_task = getattr(self, "_server_task", None)
+        if server_task is not None and not server_task.done():
+            server_task.cancel()
+            await asyncio.gather(server_task, return_exceptions=True)
+
+        engine = getattr(self, "engine", None)
+        if engine is not None:
+            shutdown = getattr(engine, "shutdown", None)
+            if shutdown is not None:
+                result = shutdown()
+                if inspect.isawaitable(result):
+                    await result
+
     async def run_headless(self, args: argparse.Namespace):
         """Run headless server in a separate thread."""
         args.api_server_count = 0
@@ -1128,6 +1143,10 @@ class vLLMReplica(RolloutReplica):
         # before we touch engine.release_kv_cache()
         await self.servers[0].wait_for_requests_to_drain.remote()
         await asyncio.gather(*[server.release_kv_cache.remote() for server in self.servers])
+
+    async def shutdown(self):
+        """Shutdown all server actors in this replica."""
+        await asyncio.gather(*[server.shutdown.remote() for server in self.servers], return_exceptions=True)
 
     # -----------------------------------------------------------------------
     # Hook methods for subclass overrides

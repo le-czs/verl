@@ -141,6 +141,12 @@ class CheckpointEngineConfig(BaseConfig):
     custom_backend_module: Optional[str] = None
     # Debug option: compare initial rollout backend-loaded weights with the source HF checkpoint.
     check_weight_sync: bool = False
+    # If true, trainers that support it exit after the initial weight-sync check.
+    check_weight_sync_only: bool = False
+
+    def __post_init__(self):
+        if self.check_weight_sync_only and not self.check_weight_sync:
+            raise ValueError("`check_weight_sync_only=True` requires `check_weight_sync=True`.")
 
 
 @dataclass

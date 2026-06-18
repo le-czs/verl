@@ -296,6 +296,10 @@ checkpoint_engine:
   # and data_parallel_size=1.
   check_weight_sync: False
 
+  # Exit after the initial weight-sync check. Requires check_weight_sync=True.
+  # Use this to debug weight sync without running PPO.
+  check_weight_sync_only: False
+
 # trace rollout data
 trace:
 

@@ -459,7 +459,7 @@ class CheckpointEngineManager:
         """Whether this update should be compared with the source HF checkpoint."""
         if not self.config.check_weight_sync:
             return False
-        return global_steps in (None, 0)
+        return self.config.check_weight_sync_only or global_steps in (None, 0)
 
     @auto_await
     async def sleep_replicas(self):
